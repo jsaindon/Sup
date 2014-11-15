@@ -15,22 +15,27 @@ import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ListView;
+import android.widget.SimpleAdapter;
 import android.widget.Toast;
 
 import com.example.sendsmsdemo.R;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 
 public class Main extends Activity {
-    String DEBUG_TAG = "Sup";
+    private final String DEBUG_TAG = "Sup";
+
+    private String PHONE_KEY = "phone";
+    private String NAME_KEY = "name";
 
     // Info of Contacts we're sending "Sup" to
-    ArrayList<String> names = new ArrayList<String>();
-    ArrayList<String> phones = new ArrayList<String>();
+    ArrayList<Map<String,String>> contact_list = new ArrayList<Map<String,String>>();
 
     // Array Adapter to update contents of ListView containing contact names
-    ArrayAdapter<String> adapter;
+    SimpleAdapter adapter;
 
     Button sendBtn;
 
@@ -43,7 +48,9 @@ public class Main extends Activity {
         ListView listView = (ListView) findViewById(R.id.contacts_listview);
 
         // Set adapter to list view
-        adapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, names);
+        adapter = new SimpleAdapter(this, contact_list, android.R.layout.simple_list_item_2,
+                new String[]{NAME_KEY, PHONE_KEY},
+                new int[] {android.R.id.text1, android.R.id.text2} );
         listView.setAdapter(adapter);
 
         sendBtn = (Button) findViewById(R.id.send_button);
@@ -99,10 +106,13 @@ public class Main extends Activity {
                         String phone = cursor.getString(phoneIndex);
 
                         // Add contact info to lists
-                        phones.add(phone);
+                        Map<String,String> contact_info = new HashMap<String,String>(2);
+                        contact_info.put(PHONE_KEY, phone);
+                        contact_info.put(NAME_KEY, name);
+                        contact_list.add(contact_info);
 
                         // Notify adapter
-                        adapter.add(name);
+                        adapter.notifyDataSetChanged();
                     }
 
                     cursor.close();
@@ -120,18 +130,17 @@ public class Main extends Activity {
 
         try {
             SmsManager smsManager = SmsManager.getDefault();
-            for(String pnum : phones)  {
-                System.out.println("pnum: " + pnum);
-                smsManager.sendTextMessage(pnum, null, "Do you want to go to Jays with me?", null, null);
+            for(Map<String,String> contact_info : contact_list)  {
+                String phone_num = contact_info.get(PHONE_KEY);
+                smsManager.sendTextMessage(phone_num, null, "Sup?", null, null);
             }
-            names.clear();
-            phones.clear();
+            contact_list.clear();
             adapter.notifyDataSetChanged();
             Toast.makeText(getApplicationContext(), "SMS sent.",
                     Toast.LENGTH_LONG).show();
         } catch (Exception e) {
             Toast.makeText(getApplicationContext(),
-                    "SMS faild, please try again.",
+                    "SMS failed, please try again.",
                     Toast.LENGTH_LONG).show();
             e.printStackTrace();
         }
