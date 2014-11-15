@@ -36,6 +36,7 @@
         android:layout_gravity="center"
         android:gravity="left"
         android:layout_weight="8"
+        
     />
     <Button
         android:id="@+id/send_button"
