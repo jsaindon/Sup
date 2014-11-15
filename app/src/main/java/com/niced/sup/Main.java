@@ -1,9 +1,12 @@
 package com.niced.sup;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.provider.ContactsContract.Contacts;
+import android.provider.ContactsContract.CommonDataKinds.Phone;
 
 
 public class Main extends Activity {
@@ -33,4 +36,26 @@ public class Main extends Activity {
         }
         return super.onOptionsItemSelected(item);
     }
+
+    private static final int CONTACT_PICKER_RESULT = 1001;
+//
+//    public void doLaunchContactPicker(View view) {
+//        Intent contactPickerIntent = new Intent(Intent.ACTION_PICK, Contents.CONTENT_URI);
+//        startActivityForResult(contactPickerIntent, CONTACT_PICKER_RESULT);
+//    }
+//
+//    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+//        if (resultCode == RESULT_OK) {
+//            switch (requestCode) {
+//                case CONTACT_PICKER_RESULT:
+//                    Uri result = data.getData();
+//                    String id = result.getLastPathSegment();
+//                    break;
+//            }
+//
+//        } else {
+//            // gracefully handle failure
+//            Log.w(DEBUG_TAG, "Warning: activity result not ok");
+//        }
+//    }
 }
