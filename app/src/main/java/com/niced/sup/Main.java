@@ -182,7 +182,4 @@ public class Main extends Activity {
         }
     }
 
-    private void deleteContactFromSend(){
-
-    }
 }
