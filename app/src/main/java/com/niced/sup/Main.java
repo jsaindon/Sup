@@ -7,30 +7,36 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.telephony.SmsManager;
 import android.util.Log;
+import android.view.ContextMenu;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.provider.ContactsContract.Contacts;
 import android.provider.ContactsContract.CommonDataKinds.Phone;
 import android.view.View;
-import android.widget.ArrayAdapter;
+import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.ListView;
+import android.widget.SimpleAdapter;
 import android.widget.Toast;
 
-import com.example.sendsmsdemo.R;
-
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 
 public class Main extends Activity {
-    String DEBUG_TAG = "Sup";
+    private final String DEBUG_TAG = "Sup";
+
+    private final String PHONE_KEY = "phone";
+    private final String NAME_KEY = "name";
+    private final String DELETE_TEXT = "Delete";
+    private final int MENU_CONTEXT_DELETE_ID = 1010;
 
     // Info of Contacts we're sending "Sup" to
-    ArrayList<String> names = new ArrayList<String>();
-    ArrayList<String> phones = new ArrayList<String>();
+    ArrayList<Map<String,String>> contact_list = new ArrayList<Map<String,String>>();
 
     // Array Adapter to update contents of ListView containing contact names
-    ArrayAdapter<String> adapter;
+    SimpleAdapter adapter;
 
     Button sendBtn;
 
@@ -43,9 +49,15 @@ public class Main extends Activity {
         ListView listView = (ListView) findViewById(R.id.contacts_listview);
 
         // Set adapter to list view
-        adapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, names);
+        adapter = new SimpleAdapter(this, contact_list, android.R.layout.simple_list_item_2,
+                new String[]{NAME_KEY, PHONE_KEY},
+                new int[] {android.R.id.text1, android.R.id.text2} );
         listView.setAdapter(adapter);
 
+        // Register for context menu for deletes
+        registerForContextMenu(listView);
+
+        // Create send button event listeners
         sendBtn = (Button) findViewById(R.id.send_button);
 
         sendBtn.setOnClickListener(new View.OnClickListener() {
@@ -61,6 +73,33 @@ public class Main extends Activity {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.main, menu);
         return true;
+    }
+
+    @Override
+    public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo) {
+        // If view is list view, option to delete
+        if (v.getId() == R.id.contacts_listview) {
+            menu.add(Menu.NONE, MENU_CONTEXT_DELETE_ID, Menu.NONE, DELETE_TEXT);
+        }
+
+        super.onCreateContextMenu(menu, v, menuInfo);
+    }
+
+    @Override
+    public boolean onContextItemSelected(MenuItem item) {
+        // If need to delete item, do so
+        switch(item.getItemId()) {
+        case MENU_CONTEXT_DELETE_ID:
+            AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo) item.getMenuInfo();
+            Log.d(DEBUG_TAG, "Removing item at position: " + info.position);
+
+            // Delete item from listview
+            this.contact_list.remove(info.position);
+            this.adapter.notifyDataSetChanged();
+            return true;
+        default:
+            return super.onContextItemSelected(item);
+        }
     }
 
     @Override
@@ -99,10 +138,13 @@ public class Main extends Activity {
                         String phone = cursor.getString(phoneIndex);
 
                         // Add contact info to lists
-                        phones.add(phone);
+                        Map<String,String> contact_info = new HashMap<String,String>(2);
+                        contact_info.put(PHONE_KEY, phone);
+                        contact_info.put(NAME_KEY, name);
+                        contact_list.add(contact_info);
 
                         // Notify adapter
-                        adapter.add(name);
+                        adapter.notifyDataSetChanged();
                     }
 
                     cursor.close();
@@ -116,24 +158,31 @@ public class Main extends Activity {
     }
 
     public void sendSMSMessage() {
+        if (contact_list.isEmpty()){
+            return;
+        }
+
         Log.i("Send SMS", "");
 
         try {
             SmsManager smsManager = SmsManager.getDefault();
-            for(String pnum : phones)  {
-                System.out.println("pnum: " + pnum);
-                smsManager.sendTextMessage(pnum, null, "Do you want to go to Jays with me?", null, null);
+            for(Map<String,String> contact_info : contact_list)  {
+                String phone_num = contact_info.get(PHONE_KEY);
+                smsManager.sendTextMessage(phone_num, null, "Sup?", null, null);
             }
-            names.clear();
-            phones.clear();
+            contact_list.clear();
             adapter.notifyDataSetChanged();
             Toast.makeText(getApplicationContext(), "SMS sent.",
                     Toast.LENGTH_LONG).show();
         } catch (Exception e) {
             Toast.makeText(getApplicationContext(),
-                    "SMS faild, please try again.",
+                    "SMS failed, please try again.",
                     Toast.LENGTH_LONG).show();
             e.printStackTrace();
         }
+    }
+
+    private void deleteContactFromSend(){
+
     }
 }
