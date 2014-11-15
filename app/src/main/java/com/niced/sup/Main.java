@@ -63,7 +63,7 @@ public class Main extends Activity {
     private static final int CONTACT_PICKER_RESULT = 1001;
 
     public void doLaunchContactPicker(View view) {
-        Intent contactPickerIntent = new Intent(Intent.ACTION_PICK, Contacts.CONTENT_URI);
+        Intent contactPickerIntent = new Intent(Intent.ACTION_PICK, Phone.CONTENT_URI);
         startActivityForResult(contactPickerIntent, CONTACT_PICKER_RESULT);
     }
 
@@ -73,25 +73,24 @@ public class Main extends Activity {
                 case CONTACT_PICKER_RESULT:
                     // Get contact's name and number
                     Uri contactData = data.getData();
-                    String[] contacts = new String[] {Contacts.DISPLAY_NAME, Phone.NUMBER};
-                    Cursor cursor = getContentResolver().query(contactData, contacts, null, null, null);
-                    cursor.moveToFirst();
+                    //String[] contacts = new String[] {Contacts.DISPLAY_NAME, Phone.NUMBER};
+                    Cursor cursor = getContentResolver().query(contactData, null, null, null, null);
+                    if (cursor.moveToFirst()) {
+                        // get phone number if contact has one
+                        int phoneIndex = cursor.getColumnIndex(Phone.NUMBER);
+                        int nameIndex = cursor.getColumnIndex(Contacts.DISPLAY_NAME);
 
-                    // get phone number if contact has one
-                    int phoneIndex = cursor.getColumnIndex(Phone.NUMBER);
-                    int nameIndex = cursor.getColumnIndex(Contacts.DISPLAY_NAME);
+                        String name = cursor.getString(nameIndex);
+                        String phone = cursor.getString(phoneIndex);
 
-                    String name = cursor.getString(nameIndex);
-                    String phone = cursor.getString(phoneIndex);
+                        // Add contact info to lists
+                        phones.add(phone);
+
+                        // Notify adapter
+                        adapter.add(name);
+                    }
 
                     cursor.close();
-
-                    // Add contact info to lists
-                    phones.add(phone);
-
-                    // Notify adapter
-                    adapter.add(name);
-
                     break;
             }
 
