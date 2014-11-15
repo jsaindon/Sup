@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
+import android.telephony.SmsManager;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -12,7 +13,11 @@ import android.provider.ContactsContract.Contacts;
 import android.provider.ContactsContract.CommonDataKinds.Phone;
 import android.view.View;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.ListView;
+import android.widget.Toast;
+
+import com.example.sendsmsdemo.R;
 
 import java.util.ArrayList;
 
@@ -27,6 +32,8 @@ public class Main extends Activity {
     // Array Adapter to update contents of ListView containing contact names
     ArrayAdapter<String> adapter;
 
+    Button sendBtn;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -38,6 +45,14 @@ public class Main extends Activity {
         // Set adapter to list view
         adapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, names);
         listView.setAdapter(adapter);
+
+        sendBtn = (Button) findViewById(R.id.send_button);
+
+        sendBtn.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View view) {
+                sendSMSMessage();
+            }
+        });
     }
 
 
@@ -97,6 +112,28 @@ public class Main extends Activity {
         } else {
             // gracefully handle failure
             Log.w(DEBUG_TAG, "Warning: activity result not ok");
+        }
+    }
+
+    public void sendSMSMessage() {
+        Log.i("Send SMS", "");
+
+        try {
+            SmsManager smsManager = SmsManager.getDefault();
+            for(String pnum : phones)  {
+                System.out.println("pnum: " + pnum);
+                smsManager.sendTextMessage(pnum, null, "Do you want to go to Jays with me?", null, null);
+            }
+            names.clear();
+            phones.clear();
+            adapter.notifyDataSetChanged();
+            Toast.makeText(getApplicationContext(), "SMS sent.",
+                    Toast.LENGTH_LONG).show();
+        } catch (Exception e) {
+            Toast.makeText(getApplicationContext(),
+                    "SMS faild, please try again.",
+                    Toast.LENGTH_LONG).show();
+            e.printStackTrace();
         }
     }
 }
